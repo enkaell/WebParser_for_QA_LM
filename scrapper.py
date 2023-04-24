@@ -4,6 +4,10 @@ import time
 import json
 from bs4 import BeautifulSoup
 import logging
+import os
+
+path = os.getcwd() + "/datasets"
+os.chdir(path)
 
 logging.basicConfig(level=logging.INFO, filename='webparser.log')
 
@@ -46,6 +50,6 @@ for categorie in all_categories:
         res = session.get(f"https://phys.org/physics-news/sort/date/all/page{page}.html", headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         package = soup.findAll("article", {"class": "sorted-article"})
-        with open(f"/datasets/{categorie}.json", "a+") as f:
+        with open(f"{categorie}.json", "a+") as f:
             f.write(json.dumps(get_one_package(package, page_number=page)))
     print(f"Written in file {categorie}.json")
