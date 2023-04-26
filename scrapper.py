@@ -46,6 +46,7 @@ def get_one_package(package: bs4.element.ResultSet, page_number: int) -> dict():
         soup = BeautifulSoup(res.text, 'html.parser')
         article["header"] = soup.find('h1', {"class": "text-extra-large line-low mb-2"}).text
         article["author"] = soup.find("p", {"class": "article-byline text-low"}).text
+        article["date"] = soup.find("p", {"class" : "text-uppercase text-low"}).text
         article["text"] = [i.text for i in soup.find("div", {"class": "mt-4 article-main"}).findAll("p")]
         articles[package.index(el) + 1 + page_number * 10] = article
     return articles
@@ -61,6 +62,7 @@ for categorie in all_categories:
     count_of_pages = int(BeautifulSoup(req.text, 'html.parser').find("div", "pagination-view mr-4").find("span").text)
 
     for page in range(count_of_pages):
+        time.sleep(0.5)
         res = session.get(f"https://phys.org/physics-news/sort/date/all/page{page}.html", headers=headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         package = soup.findAll("article", {"class": "sorted-article"})

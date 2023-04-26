@@ -40,7 +40,6 @@ def write_packet(package: selenium.webdriver.remote.webelement.WebElement):
     return articles
 
 
-driver.get(target_url)
 time.sleep(4)
 if paragraph := driver.find_elements(By.ID, "summaries"):
     if articles := paragraph[0].find_elements(By.TAG_NAME, "h3"):
