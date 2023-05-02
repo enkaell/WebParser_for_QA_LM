@@ -5,15 +5,11 @@ import json
 from bs4 import BeautifulSoup
 import logging
 import os
-import selenium
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-
-from webdriver_manager.chrome import ChromeDriverManager
 import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import asyncio
+import aiohttp
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 path = os.getcwd() + "/datasets"
 os.chdir(path)
@@ -30,42 +26,64 @@ headers = {
 }
 
 
-def get_one_package(package: bs4.element.ResultSet, page_number: int) -> dict():
-    articles = dict()
-    for el in package:
-        time.sleep(0.3)
-        article = {}
-        # driver.get(el.findChild("a", {"class": "news-link"}).attrs.get("href"))
-        # driver.find_elements(By.CLASS_NAME, "text-extra-large line-low mb-2")
-        target_url = el.findChild("a", {"class": "news-link"}).attrs.get("href")
-        res = session.get(target_url, headers=headers)
-        if res.status_code != 200:
-            logging.error(f"HTTP status code {res.status_code} at {time.time() - start_time}")
-            time.sleep(60)
-            res = session.get(target_url, headers=headers)
-        soup = BeautifulSoup(res.text, 'html.parser')
-        article["header"] = soup.find('h1', {"class": "text-extra-large line-low mb-2"}).text
-        article["author"] = soup.find("p", {"class": "article-byline text-low"}).text
-        article["date"] = soup.find("p", {"class" : "text-uppercase text-low"}).text
-        article["text"] = [i.text for i in soup.find("div", {"class": "mt-4 article-main"}).findAll("p")]
-        articles[package.index(el) + 1 + page_number * 10] = article
-    return articles
+class WebScrapper(object):
+    def __init__(self):
+        self.headers = {
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 '
+                          'Safari/537.36',
+        }
+        self.path = os.getcwd() + "/datasets"
+        self.all_categories = ["nanotech-news", "earth-news", "space-news", "chemistry-news", "biology-news",
+                               "science-news"]
+        self.start_time = time.time()
+        os.chdir(path)
+        logging.basicConfig(level=logging.INFO, filename='webparser.log')
+        self.main()
 
+    def get_one_package(self, package: bs4.element.ResultSet, page_number: int) -> dict():
+        articles = dict()
+        for el in package:
+            time.sleep(0.3)
+            article = {}
+            target_url = el.findChild("a", {"class": "news-link"}).attrs.get("href")
+            res = session.get(target_url, headers=self.headers)
+            if res.status_code != 200:
+                logging.error(f"HTTP status code {res.status_code} at {time.time() - start_time}")
+                time.sleep(60)
+                res = session.get(target_url, headers=self.headers)
+            soup = BeautifulSoup(res.text, 'html.parser')
+            article["header"] = soup.find('h1', {"class": "text-extra-large line-low mb-2"}).text
+            article["author"] = soup.find("p", {"class": "article-byline text-low"}).text
+            article["date"] = soup.find("p", {"class": "text-uppercase text-low"}).text
+            article["text"] = [i.text for i in soup.find("div", {"class": "mt-4 article-main"}).findAll("p")]
+            articles[package.index(el) + 1 + page_number * 10] = article
+        return articles
 
-for categorie in all_categories:
-    time.sleep(0.3)
-    req = session.get(f"https://phys.org/{categorie}/sort/date/all/", headers=headers, verify=False, timeout=5)
-    if req.status_code != 200:
-        logging.info(f"Error status code {req.status_code}")
-        time.sleep(30)
-        req = session.get(f"https://phys.org/{categorie}/sort/date/all/", headers=headers)
-    count_of_pages = int(BeautifulSoup(req.text, 'html.parser').find("div", "pagination-view mr-4").find("span").text)
-
-    for page in range(count_of_pages):
+    def get_one_page(self, page: str) -> dict:
         time.sleep(0.5)
-        res = session.get(f"https://phys.org/physics-news/sort/date/all/page{page}.html", headers=headers)
+        res = session.get(f"https://phys.org/physics-news/sort/date/all/page{page}.html", headers=self.headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         package = soup.findAll("article", {"class": "sorted-article"})
-        with open(f"{categorie}.json", "a+") as f:
-            f.write(json.dumps(get_one_package(package, page_number=page)))
-    print(f"Written in file {categorie}.json")
+        return self.get_one_package(package, page)
+
+    def main(self):
+        for categorie in self.all_categories:
+            time.sleep(0.3)
+            categorie_dict = {}
+            req = session.get(f"https://phys.org/{categorie}/sort/date/all/", headers=self.headers, verify=False,
+                              timeout=5)
+            if req.status_code != 200:
+                logging.info(f"Error status code {req.status_code}")
+                time.sleep(30)
+                req = session.get(f"https://phys.org/{categorie}/sort/date/all/", headers=self.headers)
+            count_of_pages = int(
+                BeautifulSoup(req.text, 'html.parser').find("div", "pagination-view mr-4").find("span").text)
+            for page in range(count_of_pages):
+                categorie_dict[page] = self.get_one_page(page=page)
+            with open(f"{categorie}.json", "a+") as f:
+                json_categorie = json.dumps(categorie_dict)
+                f.write(json_categorie)
+        print(f"Finished in {time.time() - self.start_time}")
+
+
+scrapper = WebScrapper()

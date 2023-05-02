@@ -1,23 +1,43 @@
-import bs4.element
-import requests
-import time
 import json
-from bs4 import BeautifulSoup
-import logging
+import aiofiles
+
+import asyncio
 import os
 
-path = os.getcwd() + "/datasets"
-os.chdir(path)
+
+class AsyncJSONCleaner:
+    def __init__(self):
+        self.path = os.sep.join([os.getcwd(), "datasets"])
+        self.file_list = [filename for filename in os.listdir(self.path) if
+                          ".json" in filename and "cleaned" not in filename]
+        os.chdir(self.path)
+        asyncio.run(self.main())
+
+    async def clean_line(self, file_as_string: str) -> str:
+        cleaned_as_string: str = ""
+        escaped: bool = False
+        for s in file_as_string.readline():
+            if escaped:
+                escaped = False
+                continue
+            if s == "\\":
+                escaped = True
+                continue
+            cleaned_as_string += s
+        return cleaned_as_string
+
+    async def clean_file(self, filename: str):
+        file_as_string = open(filename, "r")
+        res = await self.clean_line(file_as_string)
+        async with aiofiles.open("cleaned-" + filename, "x") as f:
+            await f.write(json.dumps(res))
+
+    async def main(self):
+        tasks = []
+        for file in self.file_list:
+            tasks.append(self.clean_file(file))
+        await asyncio.gather(*tasks)
+        print(tasks)
 
 
-def json_cleaning(path: str) -> None:
-    files_list = [filename for filename in os.listdir(path) if ".json" in filename]
-    for file in files_list:
-        with open(file, "w+") as f:
-            for ch in f:
-                if ch == "\n" or ch == "\t":
-                    print(ch)
-        f.close()
-
-
-json_cleaning(path)
+cleaner = AsyncJSONCleaner()
