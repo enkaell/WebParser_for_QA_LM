@@ -5,6 +5,4 @@
 - Async data cleaner data_cleaner.py
 
 ## Incoming features
-- Handle existing code in loop
-- Docker
-- Multiple files (?)
+- Docker (?)
