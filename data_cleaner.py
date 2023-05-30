@@ -13,24 +13,18 @@ class AsyncJSONCleaner:
         os.chdir(self.path)
         asyncio.run(self.main())
 
-    async def clean_line(self, file_as_string: str) -> str:
-        cleaned_as_string: str = ""
-        escaped: bool = False
-        for s in file_as_string.readline():
-            if escaped:
-                escaped = False
-                continue
-            if s == "\\":
-                escaped = True
-                continue
-            cleaned_as_string += s
-        return cleaned_as_string
+    async def clean_line(self, file: dict) -> str:
+        for page in file:
+            for value, key in file[page].items():
+                for v, k in key.items():
+                    file[page][value][v] = k.strip().replace('\t', '').replace('\n', '')
+        return file
 
     async def clean_file(self, filename: str):
-        file_as_string = open(filename, "r")
-        res = await self.clean_line(file_as_string)
-        async with aiofiles.open("cleaned-" + filename, "x") as f:
-            await f.write(json.dumps(res))
+        file = json.load(open(filename, "r"))
+        res = await self.clean_line(file)
+        with open("cleaned-" + filename, "a+") as f:
+            json.dump(res, f, indent=1)
 
     async def main(self):
         tasks = []

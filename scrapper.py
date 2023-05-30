@@ -52,16 +52,16 @@ class WebScrapper(object):
                 time.sleep(60)
                 res = session.get(target_url, headers=self.headers)
             soup = BeautifulSoup(res.text, 'html.parser')
-            article["header"] = soup.find('h1', {"class": "text-extra-large line-low mb-2"}).text
-            article["author"] = soup.find("p", {"class": "article-byline text-low"}).text
-            article["date"] = soup.find("p", {"class": "text-uppercase text-low"}).text
-            article["text"] = [i.text for i in soup.find("div", {"class": "mt-4 article-main"}).findAll("p")]
+            article["header"] = soup.find('h1', {"class": "text-extra-large line-low mb-2"}).text + "\n"
+            article["author"] = soup.find("p", {"class": "article-byline text-low"}).text + "\n"
+            article["date"] = soup.find("p", {"class": "text-uppercase text-low"}).text + "\n"
+            article["text"] = [i.text for i in soup.find("div", {"class": "mt-4 article-main"}).findAll("p")][0] + "\n"
             articles[package.index(el) + 1 + page_number * 10] = article
         return articles
 
-    def get_one_page(self, page: str) -> dict:
+    def get_one_page(self, page: str, categorie: str) -> dict:
         time.sleep(0.5)
-        res = session.get(f"https://phys.org/physics-news/sort/date/all/page{page}.html", headers=self.headers)
+        res = session.get(f"https://phys.org/{categorie}/sort/date/all/page{page}.html", headers=self.headers)
         soup = BeautifulSoup(res.text, 'html.parser')
         package = soup.findAll("article", {"class": "sorted-article"})
         return self.get_one_package(package, page)
@@ -79,10 +79,9 @@ class WebScrapper(object):
             count_of_pages = int(
                 BeautifulSoup(req.text, 'html.parser').find("div", "pagination-view mr-4").find("span").text)
             for page in range(count_of_pages):
-                categorie_dict[page] = self.get_one_page(page=page)
+                categorie_dict[page+1] = self.get_one_page(page=page, categorie=categorie)
             with open(f"{categorie}.json", "a+") as f:
-                json_categorie = json.dumps(categorie_dict)
-                f.write(json_categorie)
+                json.dump(categorie_dict, f, indent=1)
         print(f"Finished in {time.time() - self.start_time}")
 
 
