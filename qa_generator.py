@@ -30,11 +30,12 @@ def model_tokenizing(context, tokenizer, model):
 def work_with_file(file: dict):
     qa_dict = {}
     for page in file:
-        for value, key in file[page].items():
-            qa_dict["id"] = value
-            for v in key.values():
-                qa_dict["question_race"], qa_dict["answer_race"] = model_tokenizing(v, tokenizer_race, model_race)
-                qa_dict["question_squad"], qa_dict["answer_squad"] = model_tokenizing(v, tokenizer_squad, model_squad)
+        for key, value in file[page].items():
+            question_race, answer_race = model_tokenizing(value['text'], tokenizer_race, model_race)
+            question_squad, answer_squad = model_tokenizing(value['text'], tokenizer_squad, model_squad)
+            qa_dict[key] = {"question_race": question_race, "answer_race": answer_race,
+                             "question_squad": question_squad, "answer_squad": answer_squad,
+                             "text": value['text']}
     return qa_dict
 
 
