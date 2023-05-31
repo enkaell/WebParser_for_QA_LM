@@ -18,6 +18,7 @@ def model_tokenizing(context, tokenizer, model):
     question_answer = question_answer.replace(tokenizer.pad_token, "").replace(tokenizer.eos_token, "")
     print(question_answer.split(tokenizer.sep_token))
     try:
+        print(context)
         question = question_answer.split(tokenizer.sep_token)[0]
         answer = question_answer.split(tokenizer.sep_token)[1]
     except IndexError:
