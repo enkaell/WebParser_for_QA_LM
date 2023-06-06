@@ -3,10 +3,10 @@ import os
 import json
 
 tokenizer_race = AutoTokenizer.from_pretrained("potsawee/t5-large-generation-race-QuestionAnswer")
-model_race = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-race-QuestionAnswer")
+model_race = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-race-QuestionAnswer").to("cuda")
 
 tokenizer_squad = AutoTokenizer.from_pretrained("potsawee/t5-large-generation-squad-QuestionAnswer")
-model_squad = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-squad-QuestionAnswer")
+model_squad = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-squad-QuestionAnswer").to("cuda")
 
 path = os.sep.join([os.getcwd(), "datasets"])
 
