@@ -1,19 +1,20 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import os
 import json
-
+import torch
+device = torch.device("cuda")
 tokenizer_race = AutoTokenizer.from_pretrained("potsawee/t5-large-generation-race-QuestionAnswer")
-model_race = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-race-QuestionAnswer").to("cuda")
+model_race = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-race-QuestionAnswer").to(device)
 
 tokenizer_squad = AutoTokenizer.from_pretrained("potsawee/t5-large-generation-squad-QuestionAnswer")
-model_squad = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-squad-QuestionAnswer").to("cuda")
+model_squad = AutoModelForSeq2SeqLM.from_pretrained("potsawee/t5-large-generation-squad-QuestionAnswer").to(device)
 
 path = os.sep.join([os.getcwd(), "datasets"])
 
 
 def model_tokenizing(context, tokenizer, model):
-    inputs = tokenizer(context, return_tensors="pt")
-    outputs = model.generate(**inputs, max_length=100)
+    inputs = tokenizer(context, return_tensors="pt").to(device)
+    outputs = model.generate(**inputs, max_length=1024)
     question_answer = tokenizer.decode(outputs[0], skip_special_tokens=False)
     question_answer = question_answer.replace(tokenizer.pad_token, "").replace(tokenizer.eos_token, "")
     print(question_answer.split(tokenizer.sep_token))
