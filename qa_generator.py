@@ -43,6 +43,7 @@ def work_with_file(file: dict):
 os.chdir(path)
 files = [filename for filename in os.listdir(path) if ".json" in filename and "cleaned" in filename]
 for filename in files:
+    print(filename)
     file = json.load(open(filename, "r"))
     res = work_with_file(file)
     with open("qa_pairs-" + filename, "a+") as f:
