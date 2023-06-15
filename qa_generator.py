@@ -47,4 +47,4 @@ for filename in files:
     file = json.load(open(filename, "r"))
     res = work_with_file(file)
     with open("qa_pairs-" + filename, "a+") as f:
-        json.dump(res, f, indent=1)
+        json.dump(res, f, indent=4, ensure_ascii=False)
