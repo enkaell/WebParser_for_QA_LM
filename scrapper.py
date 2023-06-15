@@ -16,14 +16,8 @@ os.chdir(path)
 
 logging.basicConfig(level=logging.INFO, filename='webparser.log')
 
-all_categories = ["nanotech-news", "earth-news", "space-news", "chemistry-news", "biology-news",
-                  "science-news"]
 start_time = time.time()
 session = requests.Session()
-headers = {
-    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 '
-                  'Safari/537.36',
-}
 
 
 class WebScrapper(object):
@@ -33,7 +27,7 @@ class WebScrapper(object):
                           'Safari/537.36',
         }
         self.path = os.getcwd() + "/datasets"
-        self.all_categories = ["nanotech-news", "earth-news", "space-news", "chemistry-news", "biology-news",
+        self.all_categories = ["physics-news", "nanotech-news", "earth-news", "space-news", "chemistry-news", "biology-news",
                                "science-news"]
         self.start_time = time.time()
         os.chdir(path)
